@@ -1,0 +1,48 @@
+ESP8266 MQTT client can send 2 messages/second, limited to 128 bytes each
+
+
+API
+
+/v1/[account_id]/[device_id]/[device_instance_id]/[node_name]/[attribute_name]
+/v1/[device_name]
+
+Ex:
+POST /v1/flaviostutz/argibee -> registers a new argibee device instance to flaviostutz account
+    REQ {hw_id: 323223, password: 123, pub_key: 3232323232233232}
+    RES Location: /resources/flaviostutz/argibee/23423423432
+  * If there is a previous registration for the same account and the same hw_id, reuse the registration number so that previous authorizations will remain intact
+
+
+MQTT
+(same as API)
+/v1/[account_id]/[device_id]/[device_instance_id]/[node_name]/[attribute_name]
+
+Ex:
+TOPIC /v1/flaviostutz/argibee/3498439349/stripe/animation
+TOPIC /v1/flaviostutz/argibee/3498439349/stripe/animation/set
+
+
+
+OAUTH2:
+
+User will identify itself by username/password and will request an access token during registration for calling registration api (resource owner credentials grant)
+The device will receive an access_token during registration (with scopes granted for changing self properties on server (mqtt/rest))
+Device will identify itself by passing access_token as username during mqtt connection
+Ronda will identify itself by an access_token when gathering data from StutzThings (authorization grant)
+
+
+Scopes:
+  - user_info - used by apps to gather user information from login
+  - list_devices - used by apps to list current registered user's devices
+  - register_devices - used by user's client_id during device registration
+  - "i:37483:set,read,write" - i=device_instance; 37483=instance_id; set,read,write=operations
+       - operations:
+             - update_firmware - change desired firmware version for the OTA mechanism
+             - set - write only to /set topic of node attribute (desired state)
+             - read - read entire device instance tree
+             - write - write entire device instance tree
+       - used by apps and by the device in order to get/set device states
+
+Endpoints:
+  - /authorize
+  - /token
