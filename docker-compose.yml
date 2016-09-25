@@ -1,4 +1,4 @@
-stutzthings-data-api:
+data_api:
   build: .
   ports:
    - "80:3000"
