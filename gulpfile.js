@@ -17,7 +17,7 @@ gulp.task("test", ["run"] , shell.task([
 
 gulp.task("run", ["build"], shell.task([
   "docker-compose up -d",
-  "docker logs stutzthingsapi_api_1"
+  "docker logs stutzthingsdataapi_data_api_1"
 ]));
 
 gulp.task("build", null, shell.task([
