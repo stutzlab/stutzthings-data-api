@@ -3,11 +3,9 @@
 const logger = require("./logger.js");
 logger.level = "debug";
 
-const hostPrefix = process.env.API_HOST_PREFIX || "http://api.stutzthings.com";
-const mqttServerUrl = process.env.MQTT_SERVER_URL || "mqtt://mqtt.stutzthings.com:1883";
-const prefixPathMqttBridge = process.env.MQTT_PREFIX_PATH || "/v1/{account_id}/{device_id}/{device_instance_topics*}";
+const influxdb = process.env.INFLUXDB_HOST || "http://influxdb.data.stutzthings.com:8086";
 
-logger.info("Starting StutzThings API");
+logger.info("Starting StutzThings Data API");
 logger.info("");
 logger.info("hostPrefix: " + hostPrefix);
 logger.info("mqttServerUrl: " + mqttServerUrl);

@@ -1,2 +1,2 @@
 # stutzthings-data-api
-Data services API for historical device state data
+Data services API for querying historical device state data
