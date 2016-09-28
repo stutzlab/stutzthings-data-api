@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "hapi": "^13.4.1",
+    "influx": "^4.2.2",
     "mqtt": "^1.10.0",
     "winston": "^2.2.0"
   }

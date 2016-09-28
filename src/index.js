@@ -1,70 +1,70 @@
 #!/usr/bin/env node
 
 const logger = require("./logger.js");
+const utils = require("./utils.js");
+const influx = require("influx");
 logger.level = "debug";
 
-const influxdb = process.env.INFLUXDB_HOST || "http://influxdb.data.stutzthings.com:8086";
-
+//prepare influxdb communications
+const influxdb_url = process.env.INFLUXDB_HOST || "http://influxdb.data.stutzthings.com:8086";
 logger.info("Starting StutzThings Data API");
 logger.info("");
-logger.info("hostPrefix: " + hostPrefix);
-logger.info("mqttServerUrl: " + mqttServerUrl);
-logger.info("prefixPathMqttBridge: " + prefixPathMqttBridge);
+logger.info("influxdb_url: " + influxdb_url);
 logger.info("");
 
+const influxClient = influx({
+  hosts: [influxdb_url],
+  username: process.env.INFLUXDB_USERNAME || "admin",
+  password: process.env.INFLUXDB_PASSWORD || "admin",
+  database: process.env.INFLUXDB_DB || "stutzthings_mqtt"
+})
+
+//start http server
 var Hapi = require("hapi");
 var server = new Hapi.Server();
 
-server.connection({port: 3000});
+server.connection({port: 4000});
 
-//MQTT REST BRIDGE
-const restMqttBridge = require("./rest-mqtt-route.js");
-restMqttBridge.init(server, mqttServerUrl, prefixPathMqttBridge);
-
-//DEVICE REGISTRATION ENDPOINT
+//HISTORICAL DATA ACCESS
 server.route({
-  method: "POST",
-  path: "/v1/{account_id}/{device_id}",
+  method: "GET",
+  path: "/v1/{account_id}/{device_node_property*}",
   handler: function(req, reply) {
-    logger.debug("Registering new device instance");
-    logger.debug("account_password="+ req.payload.account_password + "; custom_name=" + req.payload.custom_name);
-    //FIXME fake for now. implement!
-    //TODO use https://github.com/krakenjs/swaggerize-hapi in the future
+    logger.debug("Token: client_id="+ client_id + "; resource_owner=" + resource_owner + "; scopes=" + scopes);
 
-    const username = req.params.account_id;
-    const password = req.payload.account_password;
-    const custom_name = req.payload.custom_name;
-    const hardware_id = req.payload.hardware_id;
-    const device_id = req.params.device_id;
+    const metrics_name = "v1/" + req.params.account_id + "/" + req.params.device_node_property;
+    logger.debug("metrics_name="+ metrics_name);
 
-    if(username=="some" && password=="one" && device_id=="tracker") {
-      const randomId = Math.floor((Math.random() * 999999) + 1);
-      const deviceInstance = {
-        id: randomId,
-        hardware_id: hardware_id,
-        custom_name: custom_name,
-        access_token: JSON.stringify({client_id:randomId, scopes: ["i:"+randomId+":wr"]}),
-        mqtt: {
-          host: "mqtt.stutzthings.com",
-          port: 1883,
-          ssl: false,
-          base_topic: "v1/"+ req.params.account_id +"/"+ req.params.device_id +"/" + randomId
-        },
-        ota: {
-          enabled: true,
-          host: "ota.stutzthings.com",
-          port: 80,
-          path: "/ota/tracker",
-          ssl: false,
+    const authorized = utils.isAppAuthorizedDeviceRead(req.payload.scopes, req.params.account_id);
+    logger.debug("isAppAuthorizedDeviceRead="+ authorized);
+
+    if(authorized) {
+      //query data from influxdb
+      const start_time = req.query.start_time;
+      const end_time = req.query.end_time;
+      if(start_time || end_time) {
+        var influx_query = " where ";
+        influx_query += (start_time?" time >= \'" + start_time + "\'":"");
+        if(start_time && end_time) {
+          influx_query += " and ";
         }
-      };
-      reply(deviceInstance)
-        .code(201)
-        .header("Location", hostPrefix + "/v1/" + req.params.account_id + "/" + req.params.device_id + "/" + randomId)
-        .header("Content-Type", "application/json");
+        influx_query += (end_time?" time <= \'" + end_time + "\'":"");
+      }
+
+      influxClient.query("select * from \""+ metrics_name +"\" " + influx_query, function(err, results) {
+        if(!err) {
+          reply(results)
+            .code(200)
+            .header("Content-Type", "application/json");
+        } else {
+          reply({message:"Error quering data. cause=" + err})
+            .code(500)
+            .header("Content-Type", "application/json");
+        }
+      });
 
     } else {
-      reply({message:"Invalid account/password/device_id"})
+      reply({message:"Unauthorized access to account data. account_id=" + req.params.account_id})
         .code(401)
         .header("Content-Type", "application/json");
     }
@@ -72,11 +72,9 @@ server.route({
 });
 
 server.route({
-  method: "POST",
-  path: "/v1/test",
+  method: "GET",
+  path: "/health",
   handler: function(req, reply) {
-    console.log("Just received /v1/test POST");
-    console.log(req.payload);
     reply("OK");
   }
 });
@@ -90,7 +88,7 @@ server.route({
 });
 
 server.start(function(){ // boots your server
-  console.log("stutzthings-api started on port 3000");
+  console.log("stutzthings-data-api started on port 4000");
 });
 
 module.exports = server;

@@ -8,6 +8,6 @@ RUN npm install
 
 COPY /src/* /app/src/
 
-EXPOSE 3000
+EXPOSE 4000
 
 CMD ["npm", "start"]
