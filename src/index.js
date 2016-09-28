@@ -43,8 +43,9 @@ server.route({
       //query data from influxdb
       const start_time = req.query.start_time;
       const end_time = req.query.end_time;
+      var influx_query = "";
       if(start_time || end_time) {
-        var influx_query = " where ";
+        influx_query = " where ";
         influx_query += (start_time?" time >= \'" + start_time + "\'":"");
         if(start_time && end_time) {
           influx_query += " and ";
