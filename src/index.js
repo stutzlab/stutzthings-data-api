@@ -23,7 +23,7 @@ const influxClient = influx({
 var Hapi = require("hapi");
 var server = new Hapi.Server();
 
-server.connection({port: 4000});
+server.connection({port: 80});
 
 //HISTORICAL DATA ACCESS
 server.route({
