@@ -30,7 +30,7 @@ server.route({
   method: "GET",
   path: "/v1/{account_id}/{device_node_property*}",
   handler: function(req, reply) {
-    logger.debug("Token: client_id="+ client_id + "; resource_owner=" + resource_owner + "; scopes=" + scopes);
+    // logger.debug("Token: client_id="+ client_id + "; resource_owner=" + resource_owner + "; scopes=" + scopes);
 
     const metrics_name = "v1/" + req.params.account_id + "/" + req.params.device_node_property;
     logger.debug("metrics_name="+ metrics_name);
