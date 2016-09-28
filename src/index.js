@@ -35,10 +35,11 @@ server.route({
     const metrics_name = "v1/" + req.params.account_id + "/" + req.params.device_node_property;
     logger.debug("metrics_name="+ metrics_name);
 
-    const authorized = utils.isAppAuthorizedDeviceRead(req.payload.scopes, req.params.account_id);
-    logger.debug("isAppAuthorizedDeviceRead="+ authorized);
+    //const authorized = utils.isAppAuthorizedDeviceRead(req.payload.scopes, req.params.account_id);
+    //logger.debug("isAppAuthorizedDeviceRead="+ authorized);
 
-    if(authorized) {
+    //if(authorized) {
+    if(true) {
       //query data from influxdb
       const start_time = req.query.start_time;
       const end_time = req.query.end_time;
