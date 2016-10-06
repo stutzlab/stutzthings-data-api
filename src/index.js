@@ -6,6 +6,7 @@ const influx = require("influx");
 logger.level = "debug";
 
 //prepare influxdb communications
+//CANNOT USE DOMAIN NAME FOR PROXING BECAUSE INFLUX CLIENT USES IP, NOT THE DOMAIN NAME
 const influxdb_host = process.env.INFLUXDB_HOST || "influxdbapi.data.stutzthings.com";
 const influxdb_port = process.env.INFLUXDB_PORT || "8086";
 logger.info("Starting StutzThings Data API");
