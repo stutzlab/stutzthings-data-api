@@ -6,14 +6,17 @@ const influx = require("influx");
 logger.level = "debug";
 
 //prepare influxdb communications
-const influxdb_url = process.env.INFLUXDB_HOST || "http://influxdb.data.stutzthings.com:8086";
+const influxdb_host = process.env.INFLUXDB_HOST || "influxdbapi.data.stutzthings.com";
+const influxdb_port = process.env.INFLUXDB_PORT || "8086";
 logger.info("Starting StutzThings Data API");
 logger.info("");
-logger.info("influxdb_url: " + influxdb_url);
+logger.info("influxdb_host: " + influxdb_host);
+logger.info("influxdb_port: " + influxdb_port);
 logger.info("");
 
 const influxClient = influx({
-  hosts: [influxdb_url],
+  host: influxdb_host,
+  port: influxdb_port,
   username: process.env.INFLUXDB_USERNAME || "admin",
   password: process.env.INFLUXDB_PASSWORD || "admin",
   database: process.env.INFLUXDB_DB || "stutzthings_mqtt"
@@ -59,6 +62,7 @@ server.route({
             .code(200)
             .header("Content-Type", "application/json");
         } else {
+          logger.warn("Error querying influxdb. err=" + err);
           reply({message:"Error quering data. cause=" + err})
             .code(500)
             .header("Content-Type", "application/json");
